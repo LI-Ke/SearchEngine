@@ -20,14 +20,15 @@ from PrecisionRappel import PrecisionRappel
 from PrecisionMoyenne import PrecisionMoyenne
 
 class EvalIRModel(object):
-    def __init__(self, queries, index, weighter, modelPrecision, model):
+    def __init__(self, queries, index, weighter, modelPrecision, model, params=[1.5, 0.75]):
         self.queries = queries
         self.index = index
         self.weighter = weighter
         self.mean = []
         self.std = []
-        self.modelPrecision = modelPrecision  # 1: PrecisionRappel   2: PrecisionMoyenne
-        self.model = model  # 1: Modèle Vectoriel  2: Modèle de Langue  3: Modèle Okapi
+        self.modelPrecision = modelPrecision  #  1: Precision Rappel  2: Precision Moyenne
+        self.model = model   # 1: Modèle Vectoriel  2: Modèle de Langue  3: Modèle Okapi
+        self.params = params
 
     def eval(self):
         textRepresenter = PorterStemmer()
@@ -38,12 +39,17 @@ class EvalIRModel(object):
                 stems = textRepresenter.getTextRepresentation(query.text)
                 if self.model == 1:
                     m = Vectoriel(self.index,self.weighter, True)
+                    scores = m.getScores(stems)
+                    ranking = m.getRanking(stems)
                 elif self.model == 2:
                     m = LanguageModel(self.index, self.weighter)
+                    scores = m.lissage(stems,self.params[0])
+                    ranking = m.getRanking(query)
                 else:
                     m = ModelOkapi(self.index, self.weighter)
-                scores = m.getScores(stems)
-                ranking = m.getRanking(stems)
+                    scores = m.mesureOkapi(stems, self.params[0], self.params[1])
+                    ranking = m.getRanking(query)
+                
                 irlist = IRList(query,ranking)
                 if self.modelPrecision == 1:
                     mesure = PrecisionRappel()
@@ -93,7 +99,7 @@ if __name__ == '__main__':
     index.indexation()
     weighter = WeighterTf1(index)
     
-    eirm = EvalIRModel(queries,index,weighter, 1, 1)
+    eirm = EvalIRModel(queries,index,weighter, 1, 1) 
     mean, std = eirm.eval()
     print mean
     print std
