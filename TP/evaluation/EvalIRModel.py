@@ -5,24 +5,29 @@ Created on Sun Oct 30 16:58:09 2016
 @author: like
 """
 import sys
-sys.path.insert(0, r'/home/like/M2/RI/TP')
+sys.path.insert(0, r'/users/Etu1/3402901/M2/RI/TP')
 import numpy as np
 from IRList import IRList
 from QueryParserCACM import QueryParserCACM
 from TextRepresenter import PorterStemmer
 from index import Index  
-sys.path.insert(0, r'/home/like/M2/RI/TP/modeles')
+sys.path.insert(0, r'/users/Etu1/3402901/M2/RI/TP/modeles')
 from WeighterTf1 import WeighterTf1
 from Vectoriel import Vectoriel
+from LanguageModel import LanguageModel
+from ModelOkapi import ModelOkapi
 from PrecisionRappel import PrecisionRappel
+from PrecisionMoyenne import PrecisionMoyenne
 
 class EvalIRModel(object):
-    def __init__(self, queries, index, weighter):
+    def __init__(self, queries, index, weighter, modelPrecision, model):
         self.queries = queries
         self.index = index
         self.weighter = weighter
         self.mean = []
         self.std = []
+        self.modelPrecision = modelPrecision  # 1: PrecisionRappel   2: PrecisionMoyenne
+        self.model = model  # 1: Modèle Vectoriel  2: Modèle de Langue  3: Modèle Okapi
 
     def eval(self):
         textRepresenter = PorterStemmer()
@@ -31,11 +36,19 @@ class EvalIRModel(object):
             query = self.queries[idQuery]
             if len(query.relevants) != 0:
                 stems = textRepresenter.getTextRepresentation(query.text)
-                v = Vectoriel(self.index,self.weighter, True)
-                scores = v.getScores(stems)
-                ranking = v.getRanking(stems)
+                if self.model == 1:
+                    m = Vectoriel(self.index,self.weighter, True)
+                elif self.model == 2:
+                    m = LanguageModel(self.index, self.weighter)
+                else:
+                    m = ModelOkapi(self.index, self.weighter)
+                scores = m.getScores(stems)
+                ranking = m.getRanking(stems)
                 irlist = IRList(query,ranking)
-                mesure = PrecisionRappel()
+                if self.modelPrecision == 1:
+                    mesure = PrecisionRappel()
+                else:
+                    mesure = PrecisionMoyenne()
                 prelist.append(mesure.eval(irlist))
         
         print prelist
@@ -48,13 +61,19 @@ class EvalIRModel(object):
                 cel += prelist[j][i]
             self.mean.append(cel/len(prelist))     
 				
-
         #Calculer les ecart-types
-        for i in range(lenCel):
+        if lenCel > 1:
+            for i in range(lenCel):
+                ecart = 0.0
+                for j in range(len(prelist)):
+                    ecart += np.power(prelist[j][i]-self.mean[j],2)
+                self.std.append(np.sqrt(ecart))
+        else:
             ecart = 0.0
             for j in range(len(prelist)):
-                ecart += np.power(prelist[j][i]-self.mean[j],2)
+                ecart += np.power(prelist[j][i]-self.mean[0],2)
             self.std.append(np.sqrt(ecart))
+               
         return self.mean, self.std
 
 if __name__ == '__main__':
@@ -74,8 +93,7 @@ if __name__ == '__main__':
     index.indexation()
     weighter = WeighterTf1(index)
     
-    eirm = EvalIRModel(queries,index,weighter)
+    eirm = EvalIRModel(queries,index,weighter, 1, 1)
     mean, std = eirm.eval()
     print mean
     print std
-    
