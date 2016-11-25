@@ -35,16 +35,24 @@ class Index(object):
         self.parser = ParserCACM()
         self.parser.initFile(self.fichier)
         self.textRepresenter = textRepresenter
+        
+        self.successuers = {}
+        self.predecesseurs = {}
          
         
     def indexation(self):
-        if os.path.exists('/home/like/M2/RI/TP/docs.pickle'):
-            with open('/home/like/M2/RI/TP/docs.pickle', 'rb') as docsWriter:
+        if os.path.exists('/users/Etu1/3402901/M2/RI/TP/docs.pickle'):
+            with open('/users/Etu1/3402901/M2/RI/TP/docs.pickle', 'rb') as docsWriter:
                 self.docs = pickle.load(docsWriter)
-            with open('/home/like/M2/RI/TP/docFrom.pickle', 'rb') as docFromWriter:
+            with open('/users/Etu1/3402901/M2/RI/TP/docFrom.pickle', 'rb') as docFromWriter:
                 self.docFrom = pickle.load(docFromWriter)
-            with open('/home/like/M2/RI/TP/stems.pickle', 'rb') as stemsWriter:
+            with open('/users/Etu1/3402901/M2/RI/TP/stems.pickle', 'rb') as stemsWriter:
                 self.stems = pickle.load(stemsWriter)
+            with open('/users/Etu1/3402901/M2/RI/TP/successeurs.pickle', 'rb') as successeurWriter:
+                self.successuers = pickle.load(successeurWriter)
+            with open('/users/Etu1/3402901/M2/RI/TP/predecesseurs.pickle', 'rb') as predecesseurWriter:
+                self.predecesseurs = pickle.load(predecesseurWriter)
+        
         else:
             f = open(self.name+"_index", 'w+')
             doc = self.parser.nextDocument()
@@ -75,10 +83,10 @@ class Index(object):
                 
                 doc = self.parser.nextDocument()   
             f.close() 
-            with open('docs.pickle', 'wb') as docsWriter:
+            with open('/users/Etu1/3402901/M2/RI/TP/docs.pickle', 'wb') as docsWriter:
                 pickle.dump(self.docs, docsWriter)
                  
-            with open('docFrom.pickle', 'wb') as docFromWriter:
+            with open('/users/Etu1/3402901/M2/RI/TP/docFrom.pickle', 'wb') as docFromWriter:
                 pickle.dump(self.docFrom, docFromWriter)
             
             pos = 0
@@ -87,7 +95,7 @@ class Index(object):
                 self.stems[key] = [pos, longueur] 
                 pos += longueur + 1      
             
-            with open('stems.pickle', 'wb') as stemsWriter:
+            with open('/users/Etu1/3402901/M2/RI/TP/stems.pickle', 'wb') as stemsWriter:
                 pickle.dump(self.stems, stemsWriter)   
             
             #Index inversé
@@ -144,7 +152,22 @@ class Index(object):
                             tmpStems[key][0] += len(string)
                             tmpStems[key][1] -= len(string)
                     
+                self.successuers[doc.getId()] = set()
+                if doc.getId() not in self.predecesseurs:
+                    self.predecesseurs[doc.getId()] = set()
+                if doc.get('links') != '':
+                    for suc in doc.get('links').split(";"):
+                        if suc != '':
+                            self.successuers[doc.getId()].add(suc)
+                            if suc not in self.predecesseurs:
+                                self.predecesseurs[suc] = set()
+                            self.predecesseurs[suc].add(doc.getId())
+                
                 doc = self.parser.nextDocument()         
+            with open('/users/Etu1/3402901/M2/RI/TP/successeurs.pickle', 'wb') as successeurWriter:
+                pickle.dump(self.successuers, successeurWriter)
+            with open('/users/Etu1/3402901/M2/RI/TP/predecesseurs.pickle', 'wb') as predecesseurWriter:
+                pickle.dump(self.predecesseurs, predecesseurWriter)
             f.close()
         
     
@@ -179,6 +202,12 @@ class Index(object):
         contenu = f.read(int(self.docFrom[docId][2]))
         f.close()
         return contenu
+        
+    def getSuccesseurs(self):
+        return self.successuers
+        
+    def getPredecesseurs(self):
+        return self.predecesseurs
 
 if __name__ == '__main__':
     textRepresenter = PorterStemmer()
@@ -186,6 +215,8 @@ if __name__ == '__main__':
     index = Index("document",source,textRepresenter)
     index.indexation()
     print index.getTfsForDoc("20")
-    print index.getTfsForStem("Udo")
+    print index.getTfsForStem("PRISM")
     print index.getStrDoc("1")
+    print index.getSuccesseurs()['1']
+    print index.getPredecesseurs()['100']
 
