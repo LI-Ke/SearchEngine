@@ -26,17 +26,16 @@ class GridSearch(object):
     def optimisation(self, listParametres):
         scoreMaxmal = 0
         meilleurParam = None
-        print "opti"
         for parametre in listParametres:
             eirm = EvalIRModel(self.queries, self.index, self.weighter, self.modelPrecision, self.model, parametre)
             mean, std = eirm.eval()
-            print mean
+            #print mean
             if sum(mean) > scoreMaxmal:
                 meilleurParam = parametre
                 scoreMaxmal = sum(mean)
         
-        print "Meilleur Parametre : " +  meilleurParam      
-        print "score : " +  scoreMaxmal
+        print "Meilleur Parametre : " +  str(meilleurParam)      
+        print "score : " +  str(scoreMaxmal)
     
         return meilleurParam
         
@@ -60,14 +59,15 @@ if __name__ == '__main__':
     listParamsLangue = []
     for i in np.arange(0, 1.1, 0.1):
         listParamsLangue.append([i])
-    """
+    
     listParamsOkapi = []
     for k in np.arange(1.0, 2.1, 0.1):
         for b in np.arange(0.7, 0.8, 0.01):
             listParamsOkapi.append([k,b])
-    """    
-    print  listParamsLangue 
+         
     #print  listParamsOkapi
-    gs = GridSearch(2, 2, queries, index, weighter)
-    mp = gs.optimisation(listParamsLangue)
+    #gs = GridSearch(2, 2, queries, index, weighter)
+    #mp = gs.optimisation(listParamsLangue) # Modele de Langue lambde = 0.1
+    gs = GridSearch(3, 2, queries, index, weighter)
+    mp = gs.optimisation(listParamsOkapi)  # Modele Okapi k1 = 1.5  b = 0.8
     print mp
