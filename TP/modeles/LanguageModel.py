@@ -5,12 +5,12 @@ Created on Thu Nov  3 19:51:57 2016
 @author: An1ta
 """
 import sys
-sys.path.insert(0, r'/home/like/M2/RI/TP')
+sys.path.insert(0, r'/users/Etu1/3402901/M2/RI/TP')
 from index import Index
 from TextRepresenter import PorterStemmer
 from WeighterTfTf import WeighterTfTf
 from WeighterTf1 import WeighterTf1
-sys.path.insert(0, r'/home/like/M2/RI/TP/evaluation')
+sys.path.insert(0, r'/users/Etu1/3402901/M2/RI/TP/evaluation')
 from QueryParserCACM import QueryParserCACM
 from IRmodel import IRmodel
 import numpy as np
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     representationQuery = textRepresenter.getTextRepresentation(query.text)
     weighter = WeighterTf1(index)
     lm = LanguageModel(index, weighter)
-    scores = lm.lissage(representationQuery,0.1)
+    scores = lm.lissage(representationQuery,0.0)
     print scores
     rang = lm.getRanking(query)
     print rang
