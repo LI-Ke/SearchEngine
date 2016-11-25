@@ -57,7 +57,7 @@ class EvalIRModel(object):
                     mesure = PrecisionMoyenne()
                 prelist.append(mesure.eval(irlist))
         
-        print prelist
+        #print prelist
         #Calculer les moyenne
         cellule = prelist[0]
         lenCel = len(cellule)
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     index.indexation()
     weighter = WeighterTf1(index)
     
-    eirm = EvalIRModel(queries,index,weighter, 1, 1) 
+    eirm = EvalIRModel(queries,index,weighter, 2, 2, [0.0]) 
     mean, std = eirm.eval()
     print mean
     print std
