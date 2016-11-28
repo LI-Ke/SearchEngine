@@ -17,7 +17,7 @@ import numpy as np
 
 class FeaturesSumIdfsQuery(Featurer):
     '''
-    classFeaturesLengthDoc
+    classFeaturesSumIdfsQuery
     '''
     def __init__(self, weighter):
         '''
