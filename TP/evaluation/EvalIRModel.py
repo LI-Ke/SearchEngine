@@ -5,34 +5,39 @@ Created on Sun Oct 30 16:58:09 2016
 @author: like
 """
 import sys
-sys.path.insert(0, r'/users/Etu1/3402901/M2/RI/TP')
+sys.path.insert(0, r'/home/like/M2/RI/TP')
 import numpy as np
 from IRList import IRList
 from QueryParserCACM import QueryParserCACM
 from TextRepresenter import PorterStemmer
 from index import Index  
-sys.path.insert(0, r'/users/Etu1/3402901/M2/RI/TP/modeles')
+sys.path.insert(0, r'/home/like/M2/RI/TP/modeles')
 from WeighterTf1 import WeighterTf1
 from Vectoriel import Vectoriel
 from LanguageModel import LanguageModel
 from ModelOkapi import ModelOkapi
 from PrecisionRappel import PrecisionRappel
 from PrecisionMoyenne import PrecisionMoyenne
+from MetaModelLinear import MetaModelLinear
 
 class EvalIRModel(object):
-    def __init__(self, queries, index, weighter, modelPrecision, model, params=[1.5, 0.75]):
+    def __init__(self, queries, index, weighter, modelPrecision, model, params=[1.5, 0.75], featureList=None):
         self.queries = queries
         self.index = index
         self.weighter = weighter
         self.mean = []
         self.std = []
         self.modelPrecision = modelPrecision  #  1: Precision Rappel  2: Precision Moyenne
-        self.model = model   # 1: Modèle Vectoriel  2: Modèle de Langue  3: Modèle Okapi
+        self.model = model   # 1: Modèle Vectoriel  2: Modèle de Langue  3: Modèle Okapi 4: ModèleLineair
         self.params = params
+        self.featureList = featureList
 
     def eval(self):
         textRepresenter = PorterStemmer()
         prelist = []
+        if self.model == 4:
+            mml = MetaModelLinear(self.index, self.weighter, self.featureList, self.params[0], self.params[1], self.params[2])
+            mml.optimisation(self.queries)
         for idQuery in range(len(self.queries)):
             query = self.queries[idQuery]
             if len(query.relevants) != 0:
@@ -45,11 +50,14 @@ class EvalIRModel(object):
                     m = LanguageModel(self.index, self.weighter)
                     scores = m.lissage(stems,self.params[0])
                     ranking = m.getRanking(query)
-                else:
+                elif self.model == 3:
                     m = ModelOkapi(self.index, self.weighter)
                     scores = m.mesureOkapi(stems, self.params[0], self.params[1])
                     ranking = m.getRanking(query)
-                
+                else:
+                    scores = mml.getScores(stems)
+                    ranking = mml.getRanking(query)
+                    
                 irlist = IRList(query,ranking)
                 if self.modelPrecision == 1:
                     mesure = PrecisionRappel()
@@ -103,3 +111,4 @@ if __name__ == '__main__':
     mean, std = eirm.eval()
     print mean
     print std
+    
