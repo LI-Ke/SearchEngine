@@ -33,7 +33,8 @@ class FeaturesSumIdfsQuery(Featurer):
             sumIdfs = 0.0
             nombreDocument = len(self.weighter.Index.docs)
             for term in query:
-                sumIdfs += np.log( ( nombreDocument / (1 + len(self.weighter.Index.getTfsForStem(term))) ) )
+                if term in self.weighter.Index.stems:
+                    sumIdfs += np.log( ( nombreDocument / (1 + len(self.weighter.Index.getTfsForStem(term))) ) )
             features.append(sumIdfs)
             self.sumIdfsQueryFeatures[key] = features
             
