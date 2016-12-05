@@ -7,13 +7,13 @@ Created on Mon Nov 28 13:47:48 2016
 from Featurer import Featurer
 import sys
 sys.path.insert(0, r'/home/like/M2/RI/TP/modeles')
-from index import Index
-from TextRepresenter import PorterStemmer
 from WeighterTf1 import WeighterTf1
 sys.path.insert(0, r'/home/like/M2/RI/TP/evaluation')
 from QueryParserCACM import QueryParserCACM
-from IRmodel import IRmodel
 import numpy as np
+sys.path.insert(0, r'/home/like/M2/RI/TP')
+from index import Index
+from TextRepresenter import PorterStemmer
 
 class FeaturesLengthDoc(Featurer):
     '''
@@ -29,7 +29,7 @@ class FeaturesLengthDoc(Featurer):
     def getFeatures(self, idDoc, query): 
         if idDoc not in self.docLengthFeature:
             features = []
-            countWord = 0
+            countWord = 0.0
             tfsDoc = self.weighter.Index.getTfsForDoc(idDoc)
             for word in tfsDoc:
                 countWord += tfsDoc[word]
