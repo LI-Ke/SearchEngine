@@ -47,14 +47,14 @@ class FeaturerModel(Featurer):
                 ranking = m.getRanking(query)
             
             for doc in ranking:
-                if doc[0] not in self.docQueryFeature:
-                    self.docQueryFeature[doc[0]] = {}
+                if str(doc[0]) not in self.docQueryFeature:
+                    self.docQueryFeature[str(doc[0])] = {}
                 features = []
                 features.append(doc[1])
-                self.docQueryFeature[doc[0]][queryAsKey] = features
+                self.docQueryFeature[str(doc[0])][queryAsKey] = features
     
-        #print self.docQueryFeature.keys   
-        return self.docQueryFeature[int(idDoc)][queryAsKey]
+        #print self.docQueryFeature.keys()  
+        return self.docQueryFeature[idDoc][queryAsKey]
         
 if __name__ == '__main__':
     textRepresenter = PorterStemmer()
@@ -67,5 +67,5 @@ if __name__ == '__main__':
     representationQuery = textRepresenter.getTextRepresentation(query.text)
     weighter = WeighterTf1(index)
     f = FeaturerModel(1, index, weighter)
-    features = f.getFeatures('1', representationQuery)
+    features = f.getFeatures('3339', representationQuery)
     print features
