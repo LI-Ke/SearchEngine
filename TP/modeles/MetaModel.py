@@ -4,11 +4,12 @@ Created on Thu Dec  1 12:06:53 2016
 
 @author: like
 """
-from IRModel import IRModel
+from IRmodel import IRmodel
 
-class MetaModel(IRModel):
+class MetaModel(IRmodel):
     '''
     classMetaModel
     '''
-    def __init__(self, FeaturersList):
+    def __init__(self, index, FeaturersList):
+        IRmodel.__init__(self, index)
         self.FeaturersList = FeaturersList
