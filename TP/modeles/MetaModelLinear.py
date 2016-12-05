@@ -6,24 +6,39 @@ Created on Thu Dec  1 12:35:09 2016
 """
 
 import numpy as np
+import time
 from MetaModel import MetaModel
 import sys
 sys.path.insert(0, r'/home/like/M2/RI/TP')
 from TextRepresenter import PorterStemmer
+from index import Index
+sys.path.insert(0, r'/home/like/M2/RI/TP/evaluation')
+from QueryParserCACM import QueryParserCACM
+import EvalIRModel 
+sys.path.insert(0, r'/home/like/M2/RI/TP/modeles')
+from WeighterTf1 import WeighterTf1
+sys.path.insert(0, r'/home/like/M2/RI/TP/features')
+from FeaturesLengthDoc import FeaturesLengthDoc
+from FeaturesSumIdfsQuery import FeaturesSumIdfsQuery
+from FeaturerModel import FeaturerModel
+from FeaturerList import FeaturerList
+
 
 class MetaModelLinear(MetaModel):
     '''
     classMetaModelLinear
     '''
-    def __init__(self, weighter, featurer, tmax, alpha, sigma):
+    def __init__(self, index, weighter, featurer, tmax, alpha, sigma):
+        MetaModel.__init__(self, index, featurer)
         self.weighter = weighter
+        self.featurerList = featurer.features
         self.featurer = featurer
         self.tmax = tmax
         self.alpha = alpha
         self.sigma = sigma
         self.weighters = []
         nbrFeature = 0
-        for feature in featurer:
+        for feature in self.featurerList:
             nbrFeature += 0
         for i in range (nbrFeature):
             self.weighters.append(0.0)
@@ -40,8 +55,8 @@ class MetaModelLinear(MetaModel):
                 while docNonPert in query.relevants.keys() :
                     docNonPert = np.random.choice(self.weighter.Index.docs.keys())
                 stems = textRepresenter.getTextRepresentation(query.text)
-                featuresPert = self.featurer.getFeatuers(docPert, stems)
-                featuresNonPert = self.featurer.getFeatuers(docNonPert, stems)
+                featuresPert = self.featurer.getFeatures(docPert, stems)
+                featuresNonPert = self.featurer.getFeatures(docNonPert, stems)
                 scorePert = 0.0
                 scoreNonPert = 0.0
                 for i in range(len(self.weighters)):
@@ -54,19 +69,50 @@ class MetaModelLinear(MetaModel):
                 for i in range(len(self.weighters)):
                     self.weighters[i] *= (1 - 2 * self.alpha * self.sigma)
                     normWeighter += np.power(self.weighters[i], 2)
-                loss += np.max(0, 1 - scorePert + scoreNonPert) + self.alpha * normWeighter
+                loss += max(0, 1 - scorePert + scoreNonPert) + self.alpha * normWeighter
                             
     
     def getScores(self, query):
         for idDoc in self.weighter.Index.docs:
-            features = self.featurer.getFeatuers(idDoc, query)
+            features = self.featurer.getFeatures(idDoc, query)
             score = 0.0
             for i in range(len(self.weighters)):
                 score += self.weighters[i] * features[i]
-            self.score[idDoc] = score
+            self.scores[idDoc] = score
+        
+        return self.scores
             
         
-        
-        
-        
-        
+if __name__ == '__main__':
+    start_time = time.time()
+
+    textRepresenter = PorterStemmer()
+    queries = []
+    source = "../cacm/cacm.txt"
+    index = Index("../document",source,textRepresenter)
+    index.indexation()
+    q = QueryParserCACM()
+    q.initFile("../cacm/cacm.qry","../cacm/cacm.rel")
+    query = q.nextQuery()
+    queries.append(query)
+    query = q.nextQuery()
+    queries.append(query)
+    query = q.nextQuery()
+    queries.append(query)
+    #representationQuery = textRepresenter.getTextRepresentation(query.text)
+    weighter = WeighterTf1(index)
+    liste = []
+    f = FeaturesLengthDoc(weighter)
+    liste.append(f)
+    f = FeaturesSumIdfsQuery(weighter)
+    liste.append(f)
+    f = FeaturerModel(1, index, weighter)
+    liste.append(f)
+    featureList = FeaturerList(liste)
+    #features = featureList.getFeatures('1', representationQuery)        
+    eirm = EvalIRModel.EvalIRModel(queries, index, weighter, 2, 4, [20, 0.001, 0.1], featureList) 
+    mean, std = eirm.eval()
+    print mean
+    print std
+    print("--- %s seconds ---" % (time.time() - start_time))
+    
