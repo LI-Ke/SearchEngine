@@ -41,8 +41,8 @@ public class VisualIndexes {
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
 		VisualIndexes vi = new VisualIndexes();
-		vi.generationDonneeApp("/Users/An1ta/Documents/UPMC/M2/RI/image/sbow/",250);
-		
+		DataSet<double[],String> ds = vi.generationDonneeApp("/Users/An1ta/Documents/UPMC/M2/RI/image/sbow/",250);
+		System.out.println(ds.listtrain);
 	}
 
 }

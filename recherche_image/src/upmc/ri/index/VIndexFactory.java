@@ -10,7 +10,7 @@ public class VIndexFactory {
 		int nbPatch = ImageFeatures.tdico;
 		double[] Bow = new double[nbPatch];
 		for(int i=0;i<nbPatch;i++){
-			Bow[i] = 0.;
+			Bow[i] = 0.0;
 		}
 		//calcule le nombre d'occurance de chaque mot dans une image
 		List<Integer> words = ib.getwords();

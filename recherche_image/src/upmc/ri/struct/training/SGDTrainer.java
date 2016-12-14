@@ -38,17 +38,21 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 		IStructInstantiation<X, Y> instantiation = model.instantiation();
 		for(int i=0;i<this.nbIter;i++){
 			for(int j=0;j<length;j++){
+				
 				random =  new Random().nextInt(length);
 				STrainingSample<X, Y> pairAleatoir = lts.get(random);
 				X x = pairAleatoir.input;
 				Y y = pairAleatoir.output;
-				
+
 				Y yChab = model.lai(pairAleatoir);
 				//calcul du gradient
 				for(int k=0;k<w.length;k++){
 					gi[k] = instantiation.psi(x, yChab)[k] - instantiation.psi(x,y)[k];
-					w[k] -= this.eps*(this.lmbda*w[k] + gi[k]);					
 				}
+				for(int a=0;a<w.length;a++){
+					w[a] -= this.eps*(this.lmbda*w[a] + gi[a]);					
+				}
+				//System.out.println(j);
 			}
 			this.evaluator.evaluate();
 			System.out.println("Iteration: " + i);
@@ -70,7 +74,7 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 			X x = pairAleatoir.input;
 			Y yi = pairAleatoir.output;
 			
-			double max = 0.;
+			double max = Double.MIN_VALUE;
 			for(Y y : instantiation.enumerateY()){
 				double delta = instantiation.delta(yi, y);
 				double[] psi = instantiation.psi(x, y);
@@ -80,9 +84,7 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 		}
 		loss /= length;
 		loss += (this.lmbda/2)*VectorOperations.norm2(w);
-
-	
-				
+			
 		return loss;
 	}
 
